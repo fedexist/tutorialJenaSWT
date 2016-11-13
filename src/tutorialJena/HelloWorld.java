@@ -1,6 +1,7 @@
 package tutorialJena;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -59,7 +60,7 @@ public class HelloWorld {
 		ArrayList<VCard> vcardArray = new ArrayList<>();
 				
 		for(String name : fullNameArray){
-			URIarray.add(personURI + name.replaceAll(" " , "_").replace("\'", "%27"));
+			URIarray.add(personURI + name.replaceAll(" " , "-").replace("\'", "-"));
 			String[] tmp = name.split(" ");
 			givenNameArray.add(tmp[0]);
 			familyNameArray.add(tmp[1]);			
@@ -91,6 +92,8 @@ public class HelloWorld {
 						
 			vcardArray.add(currentVCard);
 			
+			System.out.println(currentVCard);
+			
 			currentPerson.addProperty(VCARD.FN, currentVCard.getFormattedName().getValue())
 						 .addProperty(VCARD.BDAY, birthdayArray[i])
 						 .addProperty(VCARD.Given, currentVCard.getStructuredName().getGiven())
@@ -101,7 +104,12 @@ public class HelloWorld {
 		
 		StringWriter output = new StringWriter() ;
 		model.write(output, "N-TRIPLES");
-		System.out.println(output);
+		try {
+			output.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("Before adding new contacts:\n" + output);
 		
 		i = 0;
 		for(VCard v : vcardArray){
@@ -109,8 +117,8 @@ public class HelloWorld {
 			try{
 			    PrintWriter writer = new PrintWriter(
 			    						v.getFormattedName().getValue()
-			    										.replaceAll(" " , "_")
-			    										.replace("\'", "%27") +".html", "UTF-8");
+			    										.replaceAll(" " , "-")
+			    										.replace("\'", "-") +".html", "UTF-8");
 
 			    writer.print(v.writeHtml().replace("<div class=\"vcard\">", "<div class=\"h-card vcard\">"));
 			    writer.close();
@@ -128,9 +136,9 @@ public class HelloWorld {
 		
 		if(args.length != 0){
 			try {
-				String svcard = getVCF("http://h2vx.com/vcf/" + args[0]+ "hcard_0.html");
+				String svcard = getVCF("http://h2vx.com/vcf/" + "https://fedexist.github.io/fleanend.github.io/Giulia-Cagnes.html");
 				VCard vcard = Ezvcard.parse(svcard).first();
-				//System.out.println(vcard);
+				System.out.println(svcard);
 				//VCard vcard = Ezvcard.parseHtml(args[0] + "hcard_0.html").;
 				//VCard vcard = Ezvcard.parse(getVCF("http://h2vx.com/vcf/" + args[0])).first();
 				//System.out.println(getVCF("http://h2vx.com/vcf/" + args[0]));
@@ -146,8 +154,15 @@ public class HelloWorld {
 			}
 		}
 		
-		//model.write(output, "N-TRIPLES");
-		//System.out.println("After adding new contacts: \n" + output.toString());
+		output = new StringWriter() ;
+		model.write(output);
+		try {
+			output.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("After adding new contacts: \n" + output);
+		
 
 	}
 	
