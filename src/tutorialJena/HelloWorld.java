@@ -16,8 +16,10 @@ import org.apache.jena.vocabulary.*;
 
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
+import ezvcard.parameter.TelephoneType;
 import ezvcard.property.Birthday;
 import ezvcard.property.StructuredName;
+import ezvcard.property.Telephone;
 import ezvcard.property.Uid;
 
 public class HelloWorld {
@@ -26,7 +28,7 @@ public class HelloWorld {
 	
 	static private String personURI = "https://fleanend.github.io/";
 	private static String fullNameArray[] = { "Federico D'Ambrosio", "Enrico Ferro", "Edoardo Ferrante", "Giulia Cagnes" };
-	private static String birthdayArray[] = {"1993-01-01", "1993-02-02", "1993-03-03", "1993-04-04" };
+	private static String phoneArray[] = {"0000001", "0000002", "0000003", "0000004" };
 	
 
 	public HelloWorld() {
@@ -68,34 +70,28 @@ public class HelloWorld {
 		}
 	
 		int i = 0;
-		for(String URI : URIarray){
-			
-			c.clear();
-			
-			String tmp1[] = birthdayArray[i].split("-");
-			
-			c.set(Calendar.YEAR, Integer.parseInt(tmp1[0]));
-			c.set(Calendar.MONTH, Integer.parseInt(tmp1[1]) - 1);
-			c.set(Calendar.DAY_OF_MONTH, Integer.parseInt(tmp1[2]));
+		for(String URI : URIarray){			
 			
 			Resource currentPerson = model.createResource(URI);
 			VCard currentVCard = new VCard();
 			StructuredName tmp = new StructuredName();
-			Birthday tmpbDay = new Birthday(c.getTime());
+			Telephone tel = new Telephone(phoneArray[i]);
+			tel.getTypes().add(TelephoneType.HOME);
+			tel.setPref(1);
 			
 			tmp.setFamily(familyNameArray.get(i));
 			tmp.setGiven(givenNameArray.get(i));
 			currentVCard.setFormattedName(fullNameArray[i]);
 			currentVCard.setStructuredName(tmp);
-			currentVCard.setBirthday(tmpbDay);
 			currentVCard.setUid(new Uid(URI));
+			currentVCard.addTelephoneNumber(tel);
 						
 			vcardArray.add(currentVCard);
 			
 			System.out.println(currentVCard);
 			
 			currentPerson.addProperty(VCARD.FN, currentVCard.getFormattedName().getValue())
-						 .addProperty(VCARD.BDAY, birthdayArray[i])
+						 .addProperty(VCARD.TEL, currentVCard.getTelephoneNumbers().get(0).getText())
 						 .addProperty(VCARD.Given, currentVCard.getStructuredName().getGiven())
 						 .addProperty(VCARD.Family, currentVCard.getStructuredName().getFamily());
 			ResourceArray.add(currentPerson);
@@ -131,12 +127,10 @@ public class HelloWorld {
 		//System.out.println(str);
 
 		//System.out.println("Before adding contacts: \n" + output.toString());
-		
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-mm-dd");
-		
+				
 		if(args.length != 0){
 			try {
-				String svcard = getVCF("http://h2vx.com/vcf/" + "https://fedexist.github.io/fleanend.github.io/Giulia-Cagnes.html");
+				String svcard = getVCF("http://h2vx.com/vcf/" + "https://fedexist.github.io/tutorialJenaSWT/Ciccio-Pasticcio.html");
 				VCard vcard = Ezvcard.parse(svcard).first();
 				System.out.println(svcard);
 				//VCard vcard = Ezvcard.parseHtml(args[0] + "hcard_0.html").;
@@ -146,7 +140,7 @@ public class HelloWorld {
 				contact.addProperty(VCARD.FN, vcard.getFormattedName().getValue())
 						.addProperty(VCARD.Given, vcard.getStructuredName().getGiven())
 						.addProperty(VCARD.Family, vcard.getStructuredName().getFamily())
-						.addProperty(VCARD.BDAY, df.format(vcard.getBirthday().getDate()));
+						.addProperty(VCARD.TEL, vcard.getTelephoneNumbers().get(0).getText());
 				ResourceArray.add(contact);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
