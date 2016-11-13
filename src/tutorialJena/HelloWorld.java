@@ -1,17 +1,19 @@
 package tutorialJena;
 
-import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
-import org.apache.jena.atlas.json.JsonArray;
-import org.apache.jena.atlas.json.JsonObject;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.vocabulary.*;
+
+import ezvcard.Ezvcard;
+import ezvcard.VCard;
 
 public class HelloWorld {
 	
@@ -22,6 +24,20 @@ public class HelloWorld {
 
 	public HelloWorld() {
 		// TODO Auto-generated constructor stub
+	}
+	
+	public static String getVCF(String urlToRead) throws Exception {
+		StringBuilder result = new StringBuilder();
+		URL url = new URL(urlToRead);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		String line;
+		while ((line = rd.readLine()) != null) {
+			result.append(line);
+		}
+		rd.close();
+		return result.toString();
 	}
 	
 	public static void main(String[] args){
@@ -80,12 +96,32 @@ public class HelloWorld {
 		   // do something
 		}
 
-		System.out.println(str);
-		//StringWriter output = new StringWriter() ;
+		//System.out.println(str);
+		StringWriter output = new StringWriter() ;
+		model.write(output, "N-TRIPLES");
+		//System.out.println("Before adding contacts: \n" + output.toString());
 		
-		//RDFDataMgr.write(output, model, RDFFormat.JSONLD_PRETTY);	
+		
+		if(args.length != 0){
+			try {
+				VCard vcard = Ezvcard.parseHtml("http://h2vx.com/vcf/" + args[0]).first();
+				//VCard vcard = Ezvcard.parse(getVCF("http://h2vx.com/vcf/" + args[0])).first();
+				//System.out.println(getVCF("http://h2vx.com/vcf/" + args[0]));
+				Resource contact = model.createResource(vcard.getUid().toString());
+				contact.addProperty(VCARD.FN, vcard.getFormattedName().getValue())
+						.addProperty(VCARD.Given, vcard.getStructuredName().getGiven())
+						.addProperty(VCARD.Family, vcard.getStructuredName().getFamily())
+						.addProperty(VCARD.BDAY, vcard.getBirthday().getDate().toString());
+				ResourceArray.add(contact);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		//model.write(output, "N-TRIPLES");
-		//System.out.println(output.toString());
+		//System.out.println("After adding contacts: \n" + output.toString());
+
 	}
 	
 
