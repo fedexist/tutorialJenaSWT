@@ -101,8 +101,12 @@ public class HelloWorld {
 		for(VCard v : vcardArray){
 
 			try{
-			    PrintWriter writer = new PrintWriter("hcard_" + i +".html", "UTF-8");
-			    writer.print(v.writeHtml());
+			    PrintWriter writer = new PrintWriter(
+			    						v.getFormattedName().getValue()
+			    										.replaceAll(" " , "_")
+			    										.replace("\'", "%27") +".html", "UTF-8");
+
+			    writer.print(v.writeHtml().replace("<div class=\"vcard\">", "<div class=\"h-card vcard\">"));
 			    writer.close();
 			} catch (Exception e) {
 			   e.printStackTrace();
