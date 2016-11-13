@@ -14,10 +14,13 @@ import org.apache.jena.vocabulary.*;
 
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
+import ezvcard.property.Birthday;
+import ezvcard.property.StructuredName;
+import ezvcard.property.Uid;
 
 public class HelloWorld {
 		
-	static private String personURI = "https://root/";
+	static private String personURI = "https://fleanend.github.io/";
 	private static String fullNameArray[] = { "Federico D'Ambrosio", "Enrico Ferro", "Edoardo Ferrante", "Giulia Cagnes" };
 	private static String birthdayArray[] = {"19930101", "19930202", "19930303", "19930404" };
 	
@@ -48,6 +51,7 @@ public class HelloWorld {
 		ArrayList<Resource> ResourceArray = new ArrayList<>();
 		ArrayList<String> givenNameArray = new ArrayList<>();
 		ArrayList<String> familyNameArray = new ArrayList<>();
+		ArrayList<VCard> vcardArray = new ArrayList<>();
 				
 		for(String name : fullNameArray){
 			URIarray.add(personURI + name.replaceAll(" " , "_").replace("\'", "%27"));
@@ -59,17 +63,31 @@ public class HelloWorld {
 	
 		int i = 0;
 		for(String URI : URIarray){
-			Resource currentPerson = model.createResource(URI); 
-			currentPerson.addProperty(VCARD.FN, fullNameArray[i])
-						 .addProperty(VCARD.BDAY, birthdayArray[i])
-						 .addProperty(VCARD.Given, givenNameArray.get(i))
-						 .addProperty(VCARD.Family, familyNameArray.get(i));
+			Resource currentPerson = model.createResource(URI);
+			VCard currentVCard = new VCard();
+			StructuredName tmp = new StructuredName();
+			
+			tmp.setFamily(familyNameArray.get(i));
+			tmp.setGiven(givenNameArray.get(i));
+			currentVCard.setFormattedName(fullNameArray[i]);
+			currentVCard.setStructuredName(tmp);
+			currentVCard.setBirthday(new Birthday(birthdayArray[i]));
+			currentVCard.setUid(new Uid(URI));
+			
+			vcardArray.add(currentVCard);
+			
+			currentPerson.addProperty(VCARD.FN, currentVCard.getFormattedName().getValue())
+						 .addProperty(VCARD.BDAY, currentVCard.getBirthday().getText())
+						 .addProperty(VCARD.Given, currentVCard.getStructuredName().getGiven())
+						 .addProperty(VCARD.Family, currentVCard.getStructuredName().getFamily());
 			ResourceArray.add(currentPerson);
 			i++;
 		}		
 		
-		String str = "";
-		
+		StringWriter output = new StringWriter() ;
+		model.write(output, "N-TRIPLES");
+		System.out.println(output);
+		/*
 		for(i=0; i< URIarray.size(); ++i){
 			str+="\t<p class=\"h-card vcard\">\n";
 			str+="\t\t<span class=\"p-given-name\">"+givenNameArray.get(i)+"</span>\n";
@@ -77,26 +95,26 @@ public class HelloWorld {
 			str+="\t\t<a class=\"p-name\" href=\"" + URIarray.get(i) + "\">"+fullNameArray[i] +"</a>\n";
 			str+="\t\t<span class=\"dt-bday\">"+ birthdayArray[i] +"</span>\n";
 			str+="\t</p>\n";
-		}
+		}*/
 		
-		try{
-		    PrintWriter writer = new PrintWriter("hcard.html", "UTF-8");
-		    writer.println("<html>");
-		    writer.println("<body>");
-		    writer.print(str);
-		    writer.println("</body>");
-		    writer.println("</html>");
-		    writer.close();
-		} catch (Exception e) {
-		   // do something
-		}
+		i = 0;
+		for(VCard v : vcardArray){
 
+			try{
+			    PrintWriter writer = new PrintWriter("hcard_" + i +".html", "UTF-8");
+			    writer.print(v.writeHtml());
+			    writer.close();
+			} catch (Exception e) {
+			   e.printStackTrace();
+			}
+			++i;
+		}
+				
 		//System.out.println(str);
-		StringWriter output = new StringWriter() ;
-		model.write(output, "N-TRIPLES");
+
 		//System.out.println("Before adding contacts: \n" + output.toString());
 		
-		
+		/*
 		if(args.length != 0){
 			try {
 				VCard vcard = Ezvcard.parseHtml("http://h2vx.com/vcf/" + args[0]).first();
@@ -112,7 +130,7 @@ public class HelloWorld {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+		}*/
 		
 		//model.write(output, "N-TRIPLES");
 		//System.out.println("After adding contacts: \n" + output.toString());
