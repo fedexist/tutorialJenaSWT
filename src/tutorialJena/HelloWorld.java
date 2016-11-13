@@ -60,11 +60,10 @@ public class HelloWorld {
 		ArrayList<VCard> vcardArray = new ArrayList<>();
 				
 		for(String name : fullNameArray){
-			URIarray.add(personURI + name.replaceAll(" " , "-").replace("\'", "-"));
+			URIarray.add(personURI + name.replaceAll(" " , "%20"));//.replace("\'", "-"));
 			String[] tmp = name.split(" ");
 			givenNameArray.add(tmp[0]);
-			familyNameArray.add(tmp[1]);			
-			
+			familyNameArray.add(tmp[1]);
 		}
 	
 		int i = 0;
@@ -117,8 +116,8 @@ public class HelloWorld {
 			try{
 			    PrintWriter writer = new PrintWriter(
 			    						v.getFormattedName().getValue()
-			    										.replaceAll(" " , "-")
-			    										.replace("\'", "-") +".html", "UTF-8");
+			    										.replaceAll(" " , "%20")
+			    										/*.replace("\'", "-")*/ +".html", "UTF-8");
 
 			    writer.print(v.writeHtml().replace("<div class=\"vcard\">", "<div class=\"h-card vcard\">"));
 			    writer.close();
@@ -134,7 +133,7 @@ public class HelloWorld {
 		
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-mm-dd");
 		
-		if(args.length != 0){
+		if(1==1 || args.length != 0){
 			try {
 				String svcard = getVCF("http://h2vx.com/vcf/" + "https://fedexist.github.io/fleanend.github.io/Giulia-Cagnes.html");
 				VCard vcard = Ezvcard.parse(svcard).first();
