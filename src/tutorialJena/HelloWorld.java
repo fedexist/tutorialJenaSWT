@@ -7,7 +7,10 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.*;
@@ -19,10 +22,12 @@ import ezvcard.property.StructuredName;
 import ezvcard.property.Uid;
 
 public class HelloWorld {
-		
+	
+	
+	
 	static private String personURI = "https://fleanend.github.io/";
 	private static String fullNameArray[] = { "Federico D'Ambrosio", "Enrico Ferro", "Edoardo Ferrante", "Giulia Cagnes" };
-	private static String birthdayArray[] = {"19930101", "19930202", "19930303", "19930404" };
+	private static String birthdayArray[] = {"1993-01-01", "1993-02-02", "1993-03-03", "1993-04-04" };
 	
 
 	public HelloWorld() {
@@ -37,13 +42,15 @@ public class HelloWorld {
 		BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		String line;
 		while ((line = rd.readLine()) != null) {
-			result.append(line);
+			result.append(line + "\n");
 		}
 		rd.close();
 		return result.toString();
 	}
 	
 	public static void main(String[] args){
+		
+		Calendar c = Calendar.getInstance();
 		
 		Model model = ModelFactory.createDefaultModel();
 		
@@ -63,21 +70,31 @@ public class HelloWorld {
 	
 		int i = 0;
 		for(String URI : URIarray){
+			
+			c.clear();
+			
+			String tmp1[] = birthdayArray[i].split("-");
+			
+			c.set(Calendar.YEAR, Integer.parseInt(tmp1[0]));
+			c.set(Calendar.MONTH, Integer.parseInt(tmp1[1]) - 1);
+			c.set(Calendar.DAY_OF_MONTH, Integer.parseInt(tmp1[2]));
+			
 			Resource currentPerson = model.createResource(URI);
 			VCard currentVCard = new VCard();
 			StructuredName tmp = new StructuredName();
+			Birthday tmpbDay = new Birthday(c.getTime());
 			
 			tmp.setFamily(familyNameArray.get(i));
 			tmp.setGiven(givenNameArray.get(i));
 			currentVCard.setFormattedName(fullNameArray[i]);
 			currentVCard.setStructuredName(tmp);
-			currentVCard.setBirthday(new Birthday(birthdayArray[i]));
+			currentVCard.setBirthday(tmpbDay);
 			currentVCard.setUid(new Uid(URI));
-			
+						
 			vcardArray.add(currentVCard);
 			
 			currentPerson.addProperty(VCARD.FN, currentVCard.getFormattedName().getValue())
-						 .addProperty(VCARD.BDAY, currentVCard.getBirthday().getText())
+						 .addProperty(VCARD.BDAY, birthdayArray[i])
 						 .addProperty(VCARD.Given, currentVCard.getStructuredName().getGiven())
 						 .addProperty(VCARD.Family, currentVCard.getStructuredName().getFamily());
 			ResourceArray.add(currentPerson);
@@ -87,15 +104,6 @@ public class HelloWorld {
 		StringWriter output = new StringWriter() ;
 		model.write(output, "N-TRIPLES");
 		System.out.println(output);
-		/*
-		for(i=0; i< URIarray.size(); ++i){
-			str+="\t<p class=\"h-card vcard\">\n";
-			str+="\t\t<span class=\"p-given-name\">"+givenNameArray.get(i)+"</span>\n";
-			str+="\t\t<span class=\"p-family-name\">"+  familyNameArray.get(i) +"</span>\n";
-			str+="\t\t<a class=\"p-name\" href=\"" + URIarray.get(i) + "\">"+fullNameArray[i] +"</a>\n";
-			str+="\t\t<span class=\"dt-bday\">"+ birthdayArray[i] +"</span>\n";
-			str+="\t</p>\n";
-		}*/
 		
 		i = 0;
 		for(VCard v : vcardArray){
@@ -118,26 +126,30 @@ public class HelloWorld {
 
 		//System.out.println("Before adding contacts: \n" + output.toString());
 		
-		/*
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-mm-dd");
+		
 		if(args.length != 0){
 			try {
-				VCard vcard = Ezvcard.parseHtml("http://h2vx.com/vcf/" + args[0]).first();
+				String svcard = getVCF("http://h2vx.com/vcf/" + args[0]+ "hcard_0.html");
+				VCard vcard = Ezvcard.parse(svcard).first();
+				//System.out.println(vcard);
+				//VCard vcard = Ezvcard.parseHtml(args[0] + "hcard_0.html").;
 				//VCard vcard = Ezvcard.parse(getVCF("http://h2vx.com/vcf/" + args[0])).first();
 				//System.out.println(getVCF("http://h2vx.com/vcf/" + args[0]));
 				Resource contact = model.createResource(vcard.getUid().toString());
 				contact.addProperty(VCARD.FN, vcard.getFormattedName().getValue())
 						.addProperty(VCARD.Given, vcard.getStructuredName().getGiven())
 						.addProperty(VCARD.Family, vcard.getStructuredName().getFamily())
-						.addProperty(VCARD.BDAY, vcard.getBirthday().getDate().toString());
+						.addProperty(VCARD.BDAY, df.format(vcard.getBirthday().getDate()));
 				ResourceArray.add(contact);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}*/
+		}
 		
 		//model.write(output, "N-TRIPLES");
-		//System.out.println("After adding contacts: \n" + output.toString());
+		//System.out.println("After adding new contacts: \n" + output.toString());
 
 	}
 	
