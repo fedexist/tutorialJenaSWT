@@ -4,10 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -136,7 +134,7 @@ public class HelloWorld {
 				//VCard vcard = Ezvcard.parseHtml(args[0] + "hcard_0.html").;
 				//VCard vcard = Ezvcard.parse(getVCF("http://h2vx.com/vcf/" + args[0])).first();
 				//System.out.println(getVCF("http://h2vx.com/vcf/" + args[0]));
-				Resource contact = model.createResource(vcard.getUid().toString());
+				Resource contact = model.createResource(vcard.getUid().getValue());
 				contact.addProperty(VCARD.FN, vcard.getFormattedName().getValue())
 						.addProperty(VCARD.Given, vcard.getStructuredName().getGiven())
 						.addProperty(VCARD.Family, vcard.getStructuredName().getFamily())
