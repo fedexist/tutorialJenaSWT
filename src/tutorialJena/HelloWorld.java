@@ -16,10 +16,10 @@ import ezvcard.Ezvcard;
 import ezvcard.VCard;
 
 public class HelloWorld {
-	
+		
 	static private String personURI = "https://root/";
 	private static String fullNameArray[] = { "Federico D'Ambrosio", "Enrico Ferro", "Edoardo Ferrante", "Giulia Cagnes" };
-	private static String birthdayArray[] = { "01/01/1993", "02/02/1993", "03/03/1993", "04/04/1993" };
+	private static String birthdayArray[] = {"19930101", "19930202", "19930303", "19930404" };
 	
 
 	public HelloWorld() {
@@ -49,9 +49,8 @@ public class HelloWorld {
 		ArrayList<String> givenNameArray = new ArrayList<>();
 		ArrayList<String> familyNameArray = new ArrayList<>();
 				
-		
 		for(String name : fullNameArray){
-			URIarray.add(personURI + name.replaceAll(" " , "_"));
+			URIarray.add(personURI + name.replaceAll(" " , "_").replace("\'", "%27"));
 			String[] tmp = name.split(" ");
 			givenNameArray.add(tmp[0]);
 			familyNameArray.add(tmp[1]);			
@@ -67,29 +66,25 @@ public class HelloWorld {
 						 .addProperty(VCARD.Family, familyNameArray.get(i));
 			ResourceArray.add(currentPerson);
 			i++;
-		}
-		
-		StmtIterator iter = model.listStatements();
-		
+		}		
 		
 		String str = "";
 		
 		for(i=0; i< URIarray.size(); ++i){
-			str+="\t<p class=\"h-card\">\n";
+			str+="\t<p class=\"h-card vcard\">\n";
 			str+="\t\t<span class=\"p-given-name\">"+givenNameArray.get(i)+"</span>\n";
 			str+="\t\t<span class=\"p-family-name\">"+  familyNameArray.get(i) +"</span>\n";
 			str+="\t\t<a class=\"p-name\" href=\"" + URIarray.get(i) + "\">"+fullNameArray[i] +"</a>\n";
 			str+="\t\t<span class=\"dt-bday\">"+ birthdayArray[i] +"</span>\n";
 			str+="\t</p>\n";
-			
 		}
 		
 		try{
 		    PrintWriter writer = new PrintWriter("hcard.html", "UTF-8");
 		    writer.println("<html>");
-		    writer.println("\t<body>");
-		    writer.println("\t" + str);
-		    writer.println("\t</body>");
+		    writer.println("<body>");
+		    writer.print(str);
+		    writer.println("</body>");
 		    writer.println("</html>");
 		    writer.close();
 		} catch (Exception e) {
