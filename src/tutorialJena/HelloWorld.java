@@ -156,6 +156,16 @@ public class HelloWorld {
 		}
 		System.out.println("After adding new contacts: \n" + output);
 		
+		try{
+		    PrintWriter writer = new PrintWriter("output.rdf", "UTF-8");
+		    writer.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		    writer.print(output);
+		    writer.close();
+		} catch (Exception e) {
+		   e.printStackTrace();
+		}
+
+		
 
 	}
 	
