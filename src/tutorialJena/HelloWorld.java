@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -17,7 +16,6 @@ import org.apache.jena.vocabulary.*;
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
 import ezvcard.parameter.TelephoneType;
-import ezvcard.property.Birthday;
 import ezvcard.property.StructuredName;
 import ezvcard.property.Telephone;
 import ezvcard.property.Uid;
@@ -25,7 +23,7 @@ import ezvcard.property.Uid;
 public class HelloWorld {
 	
 	
-	
+	//Sorgenti staiche di dati da importare nel modello
 	static private String personURI = "https://fleanend.github.io/";
 	private static String fullNameArray[] = { "Federico D'Ambrosio", "Enrico Ferro", "Edoardo Ferrante", "Giulia Cagnes" };
 	private static String phoneArray[] = {"0000001", "0000002", "0000003", "0000004" };
@@ -35,6 +33,7 @@ public class HelloWorld {
 		// TODO Auto-generated constructor stub
 	}
 	
+	//Http GET usata per salvare il VCF
 	public static String getVCF(String urlToRead) throws Exception {
 		StringBuilder result = new StringBuilder();
 		URL url = new URL(urlToRead);
@@ -61,6 +60,7 @@ public class HelloWorld {
 		ArrayList<String> familyNameArray = new ArrayList<>();
 		ArrayList<VCard> vcardArray = new ArrayList<>();
 				
+		//Riempimento di array per family e given name, creazione URI
 		for(String name : fullNameArray){
 			URIarray.add(personURI + name.replaceAll(" " , "-").replace("\'", "-"));
 			String[] tmp = name.split(" ");
@@ -70,6 +70,7 @@ public class HelloWorld {
 		}
 	
 		int i = 0;
+		//Creazione VCard e riempimento del modello
 		for(String URI : URIarray){			
 			
 			Resource currentPerson = model.createResource(URI);
@@ -105,6 +106,7 @@ public class HelloWorld {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		//Modello prima che sia importato il nuovo contatto
 		System.out.println("Before adding new contacts:\n" + output);
 		
 		i = 0;
@@ -115,7 +117,7 @@ public class HelloWorld {
 			    						v.getFormattedName().getValue()
 			    										.replaceAll(" " , "-")
 			    										.replace("\'", "-") +".html", "UTF-8");
-
+			    //Compatibilità con h-card
 			    writer.print(v.writeHtml().replace("<div class=\"vcard\">", "<div class=\"h-card vcard\">"));
 			    writer.close();
 			} catch (Exception e) {
@@ -124,18 +126,16 @@ public class HelloWorld {
 			++i;
 		}
 				
-		//System.out.println(str);
-
-		//System.out.println("Before adding contacts: \n" + output.toString());
-				
-		if(args.length != 0){
+		
+		//fonte da cui importare la vcard
+		String source = "https://fedexist.github.io/tutorialJenaSWT/Ciccio-Pasticcio.html";
+		
 			try {
-				String svcard = getVCF("http://h2vx.com/vcf/" + "https://fedexist.github.io/tutorialJenaSWT/Ciccio-Pasticcio.html");
+				String svcard = getVCF("http://h2vx.com/vcf/" + source);
 				VCard vcard = Ezvcard.parse(svcard).first();
-				System.out.println(svcard);
-				//VCard vcard = Ezvcard.parseHtml(args[0] + "hcard_0.html").;
-				//VCard vcard = Ezvcard.parse(getVCF("http://h2vx.com/vcf/" + args[0])).first();
-				//System.out.println(getVCF("http://h2vx.com/vcf/" + args[0]));
+				
+				System.out.println(svcard); //Stampo il contatto VCF
+				
 				Resource contact = model.createResource(vcard.getUid().getValue());
 				contact.addProperty(VCARD.FN, vcard.getFormattedName().getValue())
 						.addProperty(VCARD.Given, vcard.getStructuredName().getGiven())
@@ -146,7 +146,6 @@ public class HelloWorld {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
 		
 		output = new StringWriter() ;
 		model.write(output);
