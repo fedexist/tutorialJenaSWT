@@ -20,6 +20,8 @@ import ezvcard.property.StructuredName;
 import ezvcard.property.Telephone;
 import ezvcard.property.Uid;
 
+import org.apache.jena.query.* ;
+
 public class HelloWorld {
 	
 	
@@ -88,9 +90,7 @@ public class HelloWorld {
 			currentVCard.addTelephoneNumber(tel);
 						
 			vcardArray.add(currentVCard);
-			
-			System.out.println(currentVCard);
-			
+						
 			currentPerson.addProperty(VCARD.FN, currentVCard.getFormattedName().getValue())
 						 .addProperty(VCARD.TEL, currentVCard.getTelephoneNumbers().get(0).getText())
 						 .addProperty(VCARD.Given, currentVCard.getStructuredName().getGiven())
@@ -107,7 +107,7 @@ public class HelloWorld {
 			e.printStackTrace();
 		}
 		//Modello prima che sia importato il nuovo contatto
-		System.out.println("Before adding new contacts:\n" + output);
+		//System.out.println("Before adding new contacts:\n" + output);
 		
 		i = 0;
 		for(VCard v : vcardArray){
@@ -134,7 +134,7 @@ public class HelloWorld {
 				String svcard = getVCF("http://h2vx.com/vcf/" + source);
 				VCard vcard = Ezvcard.parse(svcard).first();
 				
-				System.out.println(svcard); //Stampo il contatto VCF
+				//System.out.println(svcard); //Stampo il contatto VCF
 				
 				Resource contact = model.createResource(vcard.getUid().getValue());
 				contact.addProperty(VCARD.FN, vcard.getFormattedName().getValue())
@@ -149,6 +149,7 @@ public class HelloWorld {
 		
 		output = new StringWriter() ;
 		model.write(output);
+		
 		try {
 			output.close();
 		} catch (IOException e) {
@@ -156,6 +157,7 @@ public class HelloWorld {
 		}
 		System.out.println("After adding new contacts: \n" + output);
 		
+		//Scrittura file RDF
 		try{
 		    PrintWriter writer = new PrintWriter("output.rdf", "UTF-8");
 		    writer.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -165,6 +167,23 @@ public class HelloWorld {
 		   e.printStackTrace();
 		}
 
+	String queryString = " SELECT ?x WHERE { ?x  <http://www.w3.org/2001/vcard-rdf/3.0#TEL>  \"1234567\" } " ;
+	
+	Query query = QueryFactory.create(queryString) ;
+	
+	try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
+		ResultSet results = qexec.execSelect() ;
+		for ( ; results.hasNext() ; )
+		{
+			QuerySolution soln = results.nextSolution() ;
+			RDFNode x = soln.get("x") ;       // Get a result variable by name.
+			Resource r = soln.getResource("VarR") ; // Get a result variable - must be a resource
+			Literal l = soln.getLiteral("VarL") ;   // Get a result variable - must be a literal
+			
+			System.out.println(soln.toString());
+			System.out.println(x);
+		}
+	}
 		
 
 	}
