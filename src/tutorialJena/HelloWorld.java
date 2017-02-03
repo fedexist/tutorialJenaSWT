@@ -167,12 +167,13 @@ public class HelloWorld {
 		   e.printStackTrace();
 		}
 
-	String queryString = " SELECT ?x WHERE { ?x  <http://www.w3.org/2001/vcard-rdf/3.0#TEL>  \"1234567\" } " ;
+	String queryString = " SELECT ?x ?fname WHERE { ?x  <http://www.w3.org/2001/vcard-rdf/3.0#FN>  ?fname } " ;
 	
 	Query query = QueryFactory.create(queryString) ;
 	
 	try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
 		ResultSet results = qexec.execSelect() ;
+		/*
 		for ( ; results.hasNext() ; )
 		{
 			QuerySolution soln = results.nextSolution() ;
@@ -181,8 +182,8 @@ public class HelloWorld {
 			Literal l = soln.getLiteral("VarL") ;   // Get a result variable - must be a literal
 			
 			System.out.println(soln.toString());
-			System.out.println(x);
-		}
+		}*/
+		ResultSetFormatter.out(System.out, results, query );
 	}
 		
 
